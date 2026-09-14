@@ -1,6 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="6" fill="#0b0d10"/>
-  <rect x="0.5" y="0.5" width="31" height="31" rx="5.5" stroke="#c5cdd8" stroke-opacity="0.22"/>
-  <path d="M8 22V10h6.2c2.7 0 4.4 1.55 4.4 3.85 0 1.45-.78 2.62-2.08 3.18L19.9 22h-2.55l-3.12-4.72H10.4V22H8zm2.4-6.55h3.55c1.42 0 2.28-.78 2.28-1.92 0-1.16-.86-1.9-2.28-1.9H10.4v3.82z" fill="#e8eaed"/>
-  <path d="M22.2 22v-8.2h2.15V22h-2.15zM22.2 11.35V9.1h2.15v2.25H22.2z" fill="#c5cdd8"/>
+  <rect width="32" height="32" rx="6" fill="#0B0D10"/>
+
+  <rect
+    x="0.5"
+    y="0.5"
+    width="31"
+    height="31"
+    rx="5.5"
+    stroke="#C5CDD8"
+    stroke-opacity="0.18"
+  />
+
+  <text
+    x="16"
+    y="19.6"
+    text-anchor="middle"
+    font-family="Inter, Helvetica Neue, Arial, sans-serif"
+    font-size="8"
+    font-weight="700"
+    letter-spacing="0.9"
+    fill="#F5F7FA"
+  >CEO</text>
 </svg>
