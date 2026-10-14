@@ -1090,7 +1090,7 @@
       const quality = (p.quality / 70) * qB * industry(s).quality;
       const compPress = 1 - Math.min(0.35, s.competitors.filter((c) => !c.bankrupt && c.industry === s.company.industry).length * 0.04);
       const growth = (0.02 + mark / 8000 + s.reputation / 4000) * demandM * p.demand * industry(s).viral * mktMult(s) * (p.status === "decline" ? 0.35 : 1);
-      const organic = Math.round(p.users * growth + 8 * quality * sales);
+      const organic = Math.round((p.users * growth + 8 * quality * sales) * compPress);
       const churnRate = clamp(0.015 + Math.max(0, p.price - fair) / 400 + (1 - s.reputation / 100) * 0.02 - s.bonuses.retain - design / 20000, 0.005, 0.18);
       const lost = Math.round(p.users * churnRate);
       p.users = Math.max(0, p.users + organic - lost);
