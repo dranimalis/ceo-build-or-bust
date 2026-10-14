@@ -976,3 +976,19 @@ label, legend { color: #334d3e; font-weight: 650; }
   .toggle-pill { margin-top: 2px; }
   .settings-actions .btn { width: 100%; }
 }
+
+.field input, .field select, .field textarea, .setup-form select {
+  min-height: 48px;
+  padding: 10px 13px;
+  border: 1px solid #c9d7cd;
+  border-radius: 12px;
+  background: #fff;
+  color: #20352a;
+  box-shadow: none;
+  font-size: 1rem;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: #4c9476;
+  box-shadow: 0 0 0 3px #d8eddf;
+}
+.menu-actions .btn { min-height: 48px; }
