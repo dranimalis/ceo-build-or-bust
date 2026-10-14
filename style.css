@@ -943,3 +943,36 @@ label, legend { color: #334d3e; font-weight: 650; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
 }
+
+
+.settings-section { margin-bottom: 14px; }
+.settings-section > .eyebrow { margin-bottom: 5px; }
+.settings-section > h3 { margin-bottom: 6px; font-size: 1.25rem; }
+.settings-section > .muted { max-width: 70ch; }
+.settings-toggles { display: grid; gap: 10px; margin-top: 18px; }
+.setting-toggle {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  width: 100%; min-height: 76px; padding: 15px 17px; text-align: left;
+  color: #294637; background: #f7faf7; border: 1px solid #dce5de;
+  border-radius: 15px; cursor: pointer;
+}
+.setting-toggle:hover { background: #eef6ef; border-color: #a9cbb4; }
+.setting-toggle.is-enabled { background: #e5f2e8; border-color: #77ad8d; }
+.setting-toggle-copy { display: block; min-width: 0; }
+.setting-toggle-copy strong, .setting-toggle-copy small { display: block; }
+.setting-toggle-copy strong { font-size: 1rem; }
+.setting-toggle-copy small { color: #5b7063; font-size: .88rem; margin-top: 3px; line-height: 1.45; }
+.toggle-pill { flex-shrink: 0; min-width: 58px; padding: 6px 10px; border-radius: 999px; text-align: center; font-size: .83rem; font-weight: 800; color: #52665a; background: #e9eee9; border: 1px solid #d0dbd2; }
+.setting-toggle.is-enabled .toggle-pill { color: #fff; background: #246c5b; border-color: #246c5b; }
+.settings-actions { margin-top: 18px; flex-wrap: wrap; }
+.welcome-status { display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; color: #3f6950; font-size: .85rem; font-weight: 700; }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #459866; box-shadow: 0 0 0 4px #d8ecdd; }
+@media (min-width: 901px) {
+  .welcome-strip { position: relative; }
+  .welcome-status { position: absolute; right: 24px; top: 22px; margin: 0; }
+}
+@media (max-width: 560px) {
+  .setting-toggle { align-items: flex-start; padding: 14px; }
+  .toggle-pill { margin-top: 2px; }
+  .settings-actions .btn { width: 100%; }
+}
