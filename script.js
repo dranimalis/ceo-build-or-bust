@@ -1370,11 +1370,26 @@
     ] });
   }
 
+  function dashboardAdvice(s, exp) {
+    const products = s.products.filter((p) => p.status !== "retired");
+    const morale = avg(s.employees, "morale");
+    if (s.cash < Math.max(15000, exp.total * 5)) return { title: "Protect your cash", text: "Check weekly costs before making big purchases.", action: "Review finances", view: "finance", tone: "careful" };
+    if (!products.length) return { title: "Create your first product", text: "Your company needs something to sell before it can attract customers.", action: "Make a product", view: "products", tone: "growth" };
+    if (s.last.profit < 0) return { title: "Work toward a profitable week", text: "Your costs are higher than revenue. Review spending and product performance.", action: "Review finances", view: "finance", tone: "careful" };
+    if (s.employees.length && morale < 48) return { title: "Check in with your team", text: "Morale is low. Visit your people and see how the team is doing.", action: "Visit your team", view: "employees", tone: "people" };
+    if (s.reputation < 45) return { title: "Rebuild customer trust", text: "Focus on product quality and steady, reliable decisions.", action: "Review products", view: "products", tone: "people" };
+    return { title: "Keep building, one week at a time", text: "Check your results, choose one useful improvement, and advance when you are ready.", action: "See your company", view: "company", tone: "steady" };
+  }
+
   function renderDashboard() {
     const s = state;
     const exp = expensesBreakdown(s);
+    const advice = dashboardAdvice(s, exp);
     const root = el("view-dashboard");
-    root.innerHTML = head("Dashboard", '<button type="button" class="btn btn-ghost btn-sm" id="btn-tutorial-dash">How to play</button>') +
+    root.innerHTML = head("Your company at a glance", '<button type="button" class="btn btn-ghost btn-sm" id="btn-tutorial-dash">How to play</button>') +
+      '<section class="welcome-strip"><p class="eyebrow">WEEK ' + s.week + ' · ' + esc(s.market.state) + ' MARKET</p><h3>Welcome back, ' + esc(s.company.ceo) + '.</h3><p>Here is how things are going at ' + esc(s.company.name) + '.</p></section>' +
+      '<section class="advice-card advice-' + advice.tone + '"><div class="advice-copy"><p class="eyebrow">YOUR NEXT GOOD MOVE</p><h3>' + advice.title + '</h3><p>' + advice.text + '</p></div><button type="button" class="btn btn-primary" id="btn-advice-action">' + advice.action + '</button></section>' +
+      '<div class="quick-actions" aria-label="Quick actions"><button type="button" class="quick-action" data-quick-view="employees"><strong>Build your team</strong><small>Hire and support people</small></button><button type="button" class="quick-action" data-quick-view="products"><strong>Make a product</strong><small>Create something useful</small></button><button type="button" class="quick-action" data-quick-view="finance"><strong>Check your money</strong><small>Understand costs and profit</small></button></div>' +
       '<div class="stat-grid">' +
         stat("Cash", money(s.cash), s.cash < exp.total * 8 ? "warn" : "") +
         stat("Weekly revenue", money(s.last.revenue)) +
@@ -1400,7 +1415,8 @@
     drawChart("c-profit", s.history.profit, "#7dcea0");
     drawChart("c-cust", s.history.customers, "#c5cdd8");
     drawChart("c-val", s.history.valuation, "#d4b483");
-    qsa("[data-office-view]").forEach((b) => b.onclick = () => switchView(b.dataset.officeView));
+    qsa("[data-office-view], [data-quick-view]").forEach((b) => b.onclick = () => switchView(b.dataset.officeView || b.dataset.quickView));
+    el("btn-advice-action").onclick = () => switchView(advice.view);
     el("btn-tutorial-dash").onclick = () => showTutorial(0);
   }
 
