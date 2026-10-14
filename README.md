@@ -1,10 +1,22 @@
 # CEO: Build or Bust
 
-**Build a company. Make the decisions. Survive the chaos.**
+**Start small. Make smart choices. Build a business your way.**
 
 A single-player offline CEO / business simulation. You found a company, hire a team, ship products, and try to reach a billion-dollar valuation without running out of cash.
 
 This is the **offline edition**. The entire game runs in the browser. There is no backend, no account, and no server-side game state.
+
+## Designed for more players
+
+CEO: Build or Bust is built to be approachable whether this is your first business game or your hundredth:
+
+- **Guided first run:** a six-step tutorial explains the core systems in plain language.
+- **Next-step coaching:** the dashboard recommends a useful action based on the current state of the company.
+- **Quick actions:** jump straight to your team, products, or finances.
+- **A living office:** a lightweight animated office scene makes the company feel active.
+- **Comfort settings:** larger text, extra contrast, and reduced animation can be switched on before or during a game.
+- **Responsive layout:** the interface adapts to desktop and mobile screens.
+- **Private local progress:** saves stay in the browser unless you export them.
 
 ## About
 
