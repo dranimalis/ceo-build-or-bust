@@ -1433,17 +1433,19 @@
       '<section class="welcome-strip"><p class="eyebrow">WEEK ' + s.week + ' · ' + esc(s.market.state) + ' MARKET</p><h3>Welcome back, ' + esc(s.company.ceo) + '.</h3><p>Here is how things are going at ' + esc(s.company.name) + '.</p></section>' +
       '<section class="advice-card advice-' + advice.tone + '"><div class="advice-copy"><p class="eyebrow">YOUR NEXT GOOD MOVE</p><h3>' + advice.title + '</h3><p>' + advice.text + '</p></div><button type="button" class="btn btn-primary" id="btn-advice-action">' + advice.action + '</button></section>' +
       '<div class="quick-actions" aria-label="Quick actions"><button type="button" class="quick-action" data-quick-view="employees"><strong>Build your team</strong><small>Hire and support people</small></button><button type="button" class="quick-action" data-quick-view="products"><strong>Make a product</strong><small>Create something useful</small></button><button type="button" class="quick-action" data-quick-view="finance"><strong>Check your money</strong><small>Understand costs and profit</small></button></div>' +
+      '<div class="section-heading"><div><h3>Your business numbers</h3><p>These update as each week passes.</p></div></div>' +
       '<div class="stat-grid">' +
-        stat("Cash", money(s.cash), s.cash < exp.total * 8 ? "warn" : "") +
-        stat("Weekly revenue", money(s.last.revenue)) +
-        stat("Weekly expenses", money(exp.total)) +
-        stat("Profit", money(s.last.profit), s.last.profit >= 0 ? "good" : "bad") +
+        stat("Cash available", money(s.cash), s.cash < exp.total * 8 ? "warn" : "") +
+        stat("Money earned this week", money(s.last.revenue)) +
+        stat("Costs this week", money(exp.total)) +
+        stat("Profit this week", money(s.last.profit), s.last.profit >= 0 ? "good" : "bad") +
         stat("Customers", s.customers.toLocaleString()) +
-        stat("Employees", String(s.employees.length)) +
-        stat("Reputation", s.reputation + "/100") +
-        stat("Valuation", money(s.valuation)) +
+        stat("People on your team", String(s.employees.length)) +
+        stat("Customer reputation", s.reputation + "/100") +
+        stat("Company value", money(s.valuation)) +
       "</div>" +
       officeScene(s) +
+      '<div class="section-heading"><div><h3>Progress over time</h3><p>See how your decisions affect the business.</p></div></div>' +
       '<div class="grid grid-2" style="margin-top:12px">' +
         '<div class="card"><div class="card-head"><h3>Revenue</h3></div><div class="chart-wrap"><canvas id="c-rev"></canvas></div></div>' +
         '<div class="card"><div class="card-head"><h3>Profit</h3></div><div class="chart-wrap"><canvas id="c-profit"></canvas></div></div>' +
