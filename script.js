@@ -4,7 +4,28 @@
   const SAVE_KEY = "ceo-build-or-bust-v1";
   const SAVE_VERSION = 1;
   const TUTORIAL_KEY = "ceo-build-or-bust-tutorial-seen-v1";
+  const ACCESS_KEY = "ceo-build-or-bust-accessibility-v1";
   let tutorialStep = 0;
+  let accessibility = { largeText: false, highContrast: false, calmMotion: false };
+  try {
+    const savedAccess = JSON.parse(localStorage.getItem(ACCESS_KEY) || "null");
+    if (savedAccess && typeof savedAccess === "object") {
+      accessibility = {
+        largeText: savedAccess.largeText === true,
+        highContrast: savedAccess.highContrast === true,
+        calmMotion: savedAccess.calmMotion === true
+      };
+    }
+  } catch {}
+  function applyAccessibility() {
+    document.body.classList.toggle("large-text", accessibility.largeText);
+    document.body.classList.toggle("high-contrast", accessibility.highContrast);
+    document.body.classList.toggle("calm-motion", accessibility.calmMotion);
+  }
+  function saveAccessibility() {
+    try { localStorage.setItem(ACCESS_KEY, JSON.stringify(accessibility)); } catch {}
+    applyAccessibility();
+  }
 
   const FIRST = ["Ada","Lin","Marco","Priya","Jonah","Elena","Kenji","Amira","Soren","Tess","Rafael","Mei","Omar","Nina","Felix","Hana","Victor","Leila","Dario","Quinn","Ivy","Noel","Samir","Clara","Theo","Aisha","Hugo","Yara","Owen","Sana"];
   const LAST = ["Chen","Okonkwo","Berg","Patel","Alvarez","Sato","Rossi","Khan","Novak","Walsh","Ibrahim","Park","Silva","Costa","Varga","Ng","Brooks","Keller","Duarte","Frost","Rahman","Larsen","Moreau","Shah","Vogel"];
@@ -1832,16 +1853,30 @@
   }
 
   function renderSettings() {
+    const settingButton = (key, title, description) =>
+      '<button type="button" class="setting-toggle' + (accessibility[key] ? ' is-enabled' : '') + '" data-access-setting="' + key + '" aria-pressed="' + String(accessibility[key]) + '"><span class="setting-toggle-copy"><strong>' + title + '</strong><small>' + description + '</small></span><span class="toggle-pill" aria-hidden="true">' + (accessibility[key] ? 'On' : 'Off') + '</span></button>';
     el("view-settings").innerHTML = head("Settings") +
-      '<div class="card"><p class="muted">Saves live in this browser only. Export a JSON file if you want a backup.</p>' +
-      '<div class="actions" style="margin-top:14px">' +
+      '<section class="card settings-section"><p class="eyebrow">Make the game comfortable for you</p><h3>Reading and motion</h3><p class="muted">These choices are saved on this device. Change them whenever you like.</p><div class="settings-toggles">' +
+        settingButton("largeText", "Larger text", "Make words and numbers easier to read.") +
+        settingButton("highContrast", "Extra contrast", "Make text, borders, and buttons stand out more.") +
+        settingButton("calmMotion", "Reduce animation", "Make the office calmer and reduce movement.") +
+      '</div></section>' +
+      '<section class="card settings-section"><p class="eyebrow">Your progress</p><h3>Save and manage your game</h3><p class="muted">Your game stays in this browser. Export a save to keep a backup or move it to another device.</p>' +
+      '<div class="actions settings-actions">' +
         '<button class="btn btn-secondary" id="st-save">Save game</button>' +
         '<button class="btn btn-secondary" id="st-load">Load game</button>' +
         '<button class="btn btn-secondary" id="st-export">Export save</button>' +
         '<button class="btn btn-secondary" id="st-import">Import save</button>' +
         '<button class="btn btn-ghost" id="st-menu">Main menu</button>' +
         '<button class="btn btn-danger" id="st-reset">Reset game</button>' +
-      "</div></div>";
+      "</div></section>";
+    qsa("[data-access-setting]").forEach((b) => b.onclick = () => {
+      const key = b.dataset.accessSetting;
+      if (!Object.prototype.hasOwnProperty.call(accessibility, key)) return;
+      accessibility[key] = !accessibility[key];
+      saveAccessibility();
+      renderSettings();
+    });
     el("st-save").onclick = () => { save("manual"); toast("Saved"); };
     el("st-load").onclick = () => {
       if (!hasSave()) return toast("No save");
@@ -2132,6 +2167,7 @@
   }
 
   /* init */
+  applyAccessibility();
   bind();
   showMenu();
   window.CEO = {
