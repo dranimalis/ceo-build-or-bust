@@ -1373,6 +1373,28 @@
     return '<section class="office-card" aria-label="Your office in action"><div class="office-card-head"><div><p class="eyebrow">LIVE FROM THE OFFICE</p><h3>' + esc(s.company.name) + ' HQ</h3><p class="office-subtitle">' + esc(line) + '</p></div><span class="office-live"><span></span> Week ' + s.week + '</span></div><div class="office-floor" role="img" aria-label="Illustrated office with desks, a meeting room, coffee station, and animated team members"><div class="office-window"></div><div class="office-room-label">OPEN WORKSPACE</div><div class="office-desk desk-one"><span class="desk-screen"></span><span class="desk-mug"></span></div><div class="office-desk desk-two"><span class="desk-screen"></span><span class="desk-mug"></span></div><div class="office-desk desk-three"><span class="desk-screen"></span><span class="desk-mug"></span></div><div class="office-meeting"><span class="meeting-label">MEETING ROOM</span><span class="meeting-table"></span><span class="meeting-chair chair-a"></span><span class="meeting-chair chair-b"></span><span class="meeting-chair chair-c"></span></div><div class="office-coffee"><span class="coffee-machine"></span><span class="coffee-cup"></span><span class="coffee-label">COFFEE</span></div>' + staff + '<div class="office-wall plant-a"><span></span></div><div class="office-wall plant-b"><span></span></div></div><div class="office-footer"><div><strong>' + total + '</strong><span> team member' + (total === 1 ? '' : 's') + '</span></div><div><strong>' + talking + '</strong><span> catching up</span></div><div><strong>' + Math.max(0, total - visible.length) + '</strong><span> more off-screen</span></div><div class="office-actions"><button type="button" class="btn btn-secondary btn-sm" data-office-view="employees">Manage team</button><button type="button" class="btn btn-ghost btn-sm" data-office-view="products">Products</button></div></div></section>';
   }
 
+  function showAccessibilityModal() {
+    const choices = [
+      { key: "largeText", title: "Larger text", detail: "Make words and numbers easier to read." },
+      { key: "highContrast", title: "Extra contrast", detail: "Make buttons and text stand out more." },
+      { key: "calmMotion", title: "Reduce animation", detail: "Keep movement to a minimum." }
+    ];
+    openModal({
+      title: "Display options",
+      body: '<p class="muted">Choose what feels comfortable. Your choices are saved on this device.</p><div class="settings-toggles">' +
+        choices.map((c) => '<button type="button" class="setting-toggle' + (accessibility[c.key] ? ' is-enabled' : '') + '" data-menu-access="' + c.key + '" aria-pressed="' + String(accessibility[c.key]) + '"><span class="setting-toggle-copy"><strong>' + c.title + '</strong><small>' + c.detail + '</small></span><span class="toggle-pill">' + (accessibility[c.key] ? 'On' : 'Off') + '</span></button>').join("") +
+        '</div>',
+      buttons: [{ label: "Done", primary: true }]
+    });
+    qsa("[data-menu-access]").forEach((b) => b.onclick = () => {
+      const key = b.dataset.menuAccess;
+      if (!Object.prototype.hasOwnProperty.call(accessibility, key)) return;
+      accessibility[key] = !accessibility[key];
+      saveAccessibility();
+      showAccessibilityModal();
+    });
+  }
+
   function showTutorial(step) {
     const pages = [
       { title: "Welcome to your first week", label: "01 / 06 · THE BASICS", text: "You are the CEO. Grow a real business without running out of cash. Each turn advances the company by one week.", points: [["Cash is your runway","Keep enough money to cover payroll and operating costs."],["Every choice has a trade-off","Hiring, products, and marketing can help growth but cost money."]] },
@@ -2106,6 +2128,7 @@
   /* ---------- events wiring ---------- */
   function bind() {
     el("btn-new-game").onclick = showSetup;
+    el("btn-accessibility-menu").onclick = showAccessibilityModal;
     el("btn-tutorial-top").onclick = () => showTutorial(0);
     el("btn-continue").onclick = () => {
       try { state = loadRaw(localStorage.getItem(SAVE_KEY)); showGame(); }
