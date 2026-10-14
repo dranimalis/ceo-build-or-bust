@@ -3,6 +3,8 @@
 
   const SAVE_KEY = "ceo-build-or-bust-v1";
   const SAVE_VERSION = 1;
+  const TUTORIAL_KEY = "ceo-build-or-bust-tutorial-seen-v1";
+  let tutorialStep = 0;
 
   const FIRST = ["Ada","Lin","Marco","Priya","Jonah","Elena","Kenji","Amira","Soren","Tess","Rafael","Mei","Omar","Nina","Felix","Hana","Victor","Leila","Dario","Quinn","Ivy","Noel","Samir","Clara","Theo","Aisha","Hugo","Yara","Owen","Sana"];
   const LAST = ["Chen","Okonkwo","Berg","Patel","Alvarez","Sato","Rossi","Khan","Novak","Walsh","Ibrahim","Park","Silva","Costa","Varga","Ng","Brooks","Keller","Duarte","Frost","Rahman","Larsen","Moreau","Shah","Vogel"];
@@ -1338,11 +1340,41 @@
     return '<div class="page-head"><div><h2>' + title + "</h2></div><div class=\"actions\">" + (actions || "") + "</div></div>";
   }
 
+  function officeScene(s) {
+    const visible = s.employees.slice(0, 8);
+    const total = s.employees.length;
+    const talking = visible.filter((e, i) => i % 3 === 1 && !e.off).length;
+    const staff = visible.map((e, i) => {
+      const status = e.off ? "On leave" : (i % 3 === 0 ? "Working at a desk" : i % 3 === 1 ? "Chatting with a teammate" : "Walking around the office");
+      return '<div class="office-person person-' + (i % 8) + (e.off ? ' is-away' : '') + '" title="' + esc(e.name + " — " + e.role + " — " + status) + '"><span class="person-shadow"></span><span class="person-head"></span><span class="person-body"></span><span class="person-leg leg-a"></span><span class="person-leg leg-b"></span>' + (i % 3 === 1 && !e.off ? '<span class="person-talk">•••</span>' : '') + '<span class="person-name">' + esc(e.name.split(" ")[0]) + '</span></div>';
+    }).join("");
+    const line = total === 0 ? "The office is quiet. Hire your first teammate." : s.employees.some((e) => e.role === "Manager") ? "Daily stand-up is underway" : "The team is settling into the week";
+    return '<section class="office-card" aria-label="Your office in action"><div class="office-card-head"><div><p class="eyebrow">LIVE FROM THE OFFICE</p><h3>' + esc(s.company.name) + ' HQ</h3><p class="office-subtitle">' + esc(line) + '</p></div><span class="office-live"><span></span> Week ' + s.week + '</span></div><div class="office-floor" role="img" aria-label="Illustrated office with desks, a meeting room, coffee station, and animated team members"><div class="office-window"></div><div class="office-room-label">OPEN WORKSPACE</div><div class="office-desk desk-one"><span class="desk-screen"></span><span class="desk-mug"></span></div><div class="office-desk desk-two"><span class="desk-screen"></span><span class="desk-mug"></span></div><div class="office-desk desk-three"><span class="desk-screen"></span><span class="desk-mug"></span></div><div class="office-meeting"><span class="meeting-label">MEETING ROOM</span><span class="meeting-table"></span><span class="meeting-chair chair-a"></span><span class="meeting-chair chair-b"></span><span class="meeting-chair chair-c"></span></div><div class="office-coffee"><span class="coffee-machine"></span><span class="coffee-cup"></span><span class="coffee-label">COFFEE</span></div>' + staff + '<div class="office-wall plant-a"><span></span></div><div class="office-wall plant-b"><span></span></div></div><div class="office-footer"><div><strong>' + total + '</strong><span> team member' + (total === 1 ? '' : 's') + '</span></div><div><strong>' + talking + '</strong><span> catching up</span></div><div><strong>' + Math.max(0, total - visible.length) + '</strong><span> more off-screen</span></div><div class="office-actions"><button type="button" class="btn btn-secondary btn-sm" data-office-view="employees">Manage team</button><button type="button" class="btn btn-ghost btn-sm" data-office-view="products">Products</button></div></div></section>';
+  }
+
+  function showTutorial(step) {
+    const pages = [
+      { title: "Welcome to your first week", label: "01 / 06 · THE BASICS", text: "You are the CEO. Grow a real business without running out of cash. Each turn advances the company by one week.", points: [["Cash is your runway","Keep enough money to cover payroll and operating costs."],["Every choice has a trade-off","Hiring, products, and marketing can help growth but cost money."]] },
+      { title: "Meet your team", label: "02 / 06 · PEOPLE", text: "Employees power product development, sales, marketing, research, and morale.", points: [["Hire with a plan","Hiring costs money up front, then adds a weekly salary."],["Protect morale","Stress and low morale can hurt the team. HR and fair salaries help."]] },
+      { title: "Build a product", label: "03 / 06 · PRODUCTS", text: "Open Products to develop and launch products. Development takes time; better teams and upgrades help.", points: [["Budget for development","Product work competes with payroll and other expenses."],["Watch the lifecycle","Products can grow, mature, and decline. Keep improving your portfolio."]] },
+      { title: "Find your customers", label: "04 / 06 · GROWTH", text: "Marketing can attract customers. Reputation, quality, competition, and market conditions all affect growth.", points: [["Read campaign costs","Campaigns charge their listed cost when started."],["Adapt to the market","A strategy that works now may not work in a recession."]] },
+      { title: "Protect your runway", label: "05 / 06 · FINANCES", text: "Finance shows cash flow and debt. Research and upgrades can improve efficiency, but take time to pay back.", points: [["Check weekly profit","Revenue minus expenses tells you whether your plan is sustainable."],["Borrow carefully","Loans provide cash now, but repayments and interest become expenses."]] },
+      { title: "You’re in charge", label: "06 / 06 · YOUR TURN", text: "Use Next week for one turn. Auto advances several weeks; Pause stops it. Events may force you to adapt.", points: [["Your office is alive","The dashboard shows an animated snapshot of the team working and chatting."],["Play the long game","Build steady revenue, keep your team productive, and grow valuation without going bankrupt."]] }
+    ];
+    tutorialStep = Math.max(0, Math.min(pages.length - 1, step || 0));
+    const p = pages[tutorialStep];
+    openModal({ title: p.title, body: '<div class="tutorial-content"><p class="eyebrow">' + p.label + '</p><p class="tutorial-intro">' + p.text + '</p><div class="tutorial-points">' + p.points.map((x) => '<div class="tutorial-point"><span class="tutorial-check">✓</span><div><strong>' + x[0] + '</strong><p>' + x[1] + '</p></div></div>').join("") + '</div><div class="tutorial-progress" aria-label="Step ' + (tutorialStep + 1) + ' of ' + pages.length + '">' + pages.map((_, i) => '<span class="' + (i === tutorialStep ? 'is-current' : i < tutorialStep ? 'is-done' : '') + '"></span>').join("") + '</div></div>', buttons: [
+      { label: "Skip guide", onClick: () => { try { localStorage.setItem(TUTORIAL_KEY, "1"); } catch {} closeModal(); } },
+      ...(tutorialStep > 0 ? [{ label: "Back", onClick: () => showTutorial(tutorialStep - 1) }] : []),
+      { label: tutorialStep === pages.length - 1 ? "Let’s build" : "Next", primary: true, onClick: () => { if (tutorialStep >= pages.length - 1) { try { localStorage.setItem(TUTORIAL_KEY, "1"); } catch {} closeModal(); } else showTutorial(tutorialStep + 1); } }
+    ] });
+  }
+
   function renderDashboard() {
     const s = state;
     const exp = expensesBreakdown(s);
     const root = el("view-dashboard");
-    root.innerHTML = head("Dashboard") +
+    root.innerHTML = head("Dashboard", '<button type="button" class="btn btn-ghost btn-sm" id="btn-tutorial-dash">How to play</button>') +
       '<div class="stat-grid">' +
         stat("Cash", money(s.cash), s.cash < exp.total * 8 ? "warn" : "") +
         stat("Weekly revenue", money(s.last.revenue)) +
@@ -1353,6 +1385,7 @@
         stat("Reputation", s.reputation + "/100") +
         stat("Valuation", money(s.valuation)) +
       "</div>" +
+      officeScene(s) +
       '<div class="grid grid-2" style="margin-top:12px">' +
         '<div class="card"><div class="card-head"><h3>Revenue</h3></div><div class="chart-wrap"><canvas id="c-rev"></canvas></div></div>' +
         '<div class="card"><div class="card-head"><h3>Profit</h3></div><div class="chart-wrap"><canvas id="c-profit"></canvas></div></div>' +
@@ -1367,6 +1400,8 @@
     drawChart("c-profit", s.history.profit, "#7dcea0");
     drawChart("c-cust", s.history.customers, "#c5cdd8");
     drawChart("c-val", s.history.valuation, "#d4b483");
+    qsa("[data-office-view]").forEach((b) => b.onclick = () => switchView(b.dataset.officeView));
+    el("btn-tutorial-dash").onclick = () => showTutorial(0);
   }
 
   function stat(label, value, cls) {
@@ -2020,6 +2055,7 @@
   /* ---------- events wiring ---------- */
   function bind() {
     el("btn-new-game").onclick = showSetup;
+    el("btn-tutorial-top").onclick = () => showTutorial(0);
     el("btn-continue").onclick = () => {
       try { state = loadRaw(localStorage.getItem(SAVE_KEY)); showGame(); }
       catch { toast("Could not load save"); }
@@ -2035,6 +2071,7 @@
       unicornShown = false; warnedCash = false;
       save("new");
       showGame();
+      try { if (localStorage.getItem(TUTORIAL_KEY) !== "1") showTutorial(0); } catch { showTutorial(0); }
     };
     el("industry-grid").addEventListener("click", (e) => {
       const b = e.target.closest("[data-ind]");
