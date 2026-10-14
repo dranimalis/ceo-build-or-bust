@@ -692,7 +692,7 @@
       totalRevenue: 0, totalProfit: 0, highestRevenue: 0, highestValuation: 100000,
       customersPeak: 0, hired: 1, fired: 0, productsLaunched: 0, productsRetired: 0,
       campaigns: 0, researchDone: 0, weeks: 0, loansTaken: 0, loansRepaid: 0,
-      bankruptcies: 0, achievements: 0
+      bankruptcies: 0, achievements: 0, employeesQuit: 0
     };
   }
 
@@ -755,28 +755,64 @@
   }
   function loadRaw(raw) {
     const s = JSON.parse(raw);
-    if (!s || typeof s !== "object") throw new Error("Invalid save");
-    if (!s.company || !s.company.name || !s.company.industry) throw new Error("Save missing company");
-    if (typeof s.cash !== "number" || typeof s.week !== "number") throw new Error("Save missing finances");
-    if (!Array.isArray(s.employees) || !Array.isArray(s.products)) throw new Error("Save missing staff/products");
-    s.version = s.version || 1;
-    s.bonuses = Object.assign(newState("x", "y", "Technology").bonuses, s.bonuses || {});
-    s.stats = Object.assign(defaultStats(), s.stats || {});
-    s.flags = s.flags || {};
-    s.last = s.last || { revenue: 0, expenses: 0, profit: 0, customers: 0, reputation: 0, valuation: 0 };
-    s.upgrades = Object.assign({ office: 0, servers: 0, infrastructure: 0, automation: 0, marketingDept: 0, rdLab: 0, salesDept: 0 }, s.upgrades || {});
-    s.history = s.history || { revenue: [], profit: [], customers: [], valuation: [] };
-    s.news = s.news || [];
-    s.activity = s.activity || [];
-    s.achievements = s.achievements || {};
-    s.campaigns = s.campaigns || [];
-    s.research = s.research || [];
-    s.researchDone = s.researchDone || [];
-    s.loans = s.loans || [];
-    s.competitors = s.competitors || [];
-    s.market = s.market || { state: "Stable", ...MARKET_STATES.Stable };
-    s.historyLog = s.historyLog || [];
-    s.milestones = s.milestones || [];
+    const isRecord = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+    const finite = (v) => typeof v === "number" && Number.isFinite(v);
+    const requireArray = (v, name) => { if (!Array.isArray(v)) throw new Error("Invalid save: " + name); };
+    if (!isRecord(s)) throw new Error("Invalid save");
+    if (!isRecord(s.company) || typeof s.company.name !== "string" || !s.company.name.trim() ||
+        s.company.name.length > 80 || typeof s.company.industry !== "string" || !INDUSTRIES[s.company.industry]) {
+      throw new Error("Invalid save: company");
+    }
+    const version = s.version == null ? 1 : s.version;
+    if (!Number.isInteger(version) || version < 1 || version > SAVE_VERSION) throw new Error("Unsupported save version");
+    if (!finite(s.cash) || !finite(s.week) || s.week < 1 || !Number.isInteger(s.week)) throw new Error("Invalid save: finances");
+    ["employees", "products"].forEach((k) => requireArray(s[k], k));
+    if (s.employees.some((v) => !isRecord(v)) || s.products.some((v) => !isRecord(v))) throw new Error("Invalid save: entries");
+    s.employees.forEach((e) => {
+      if (typeof e.id !== "string" || typeof e.name !== "string" || !ROLES[e.role] ||
+          !["skill", "salary", "morale", "stress"].every((k) => finite(e[k])) ||
+          (e.off != null && (!finite(e.off) || e.off < 0))) throw new Error("Invalid save: employee");
+    });
+    const statuses = ["idea", "development", "ready", "launch", "growth", "maturity", "decline", "retired"];
+    s.products.forEach((p) => {
+      if (typeof p.id !== "string" || typeof p.name !== "string" || !statuses.includes(p.status) ||
+          !["quality", "price", "users", "demand", "age", "weeksLeft", "devCost"].every((k) => finite(p[k]))) {
+        throw new Error("Invalid save: product");
+      }
+    });
+    s.version = version;
+    const defaults = newState("x", "y", "Technology");
+    s.bonuses = Object.assign({}, defaults.bonuses, isRecord(s.bonuses) ? s.bonuses : {});
+    s.stats = Object.assign(defaultStats(), isRecord(s.stats) ? s.stats : {});
+    s.flags = isRecord(s.flags) ? s.flags : {};
+    s.last = isRecord(s.last) ? s.last : { revenue: 0, expenses: 0, profit: 0, customers: 0, reputation: 0, valuation: 0 };
+    s.upgrades = Object.assign({ office: 0, servers: 0, infrastructure: 0, automation: 0, marketingDept: 0, rdLab: 0, salesDept: 0 }, isRecord(s.upgrades) ? s.upgrades : {});
+    Object.keys(s.upgrades).forEach((k) => {
+      if (!UPGRADES[k] || !Number.isInteger(s.upgrades[k]) || s.upgrades[k] < 0 || !UPGRADES[k].levels[s.upgrades[k]]) throw new Error("Invalid save: upgrade level");
+    });
+    s.history = isRecord(s.history) ? s.history : { revenue: [], profit: [], customers: [], valuation: [] };
+    ["revenue", "profit", "customers", "valuation"].forEach((k) => {
+      if (!Array.isArray(s.history[k]) || s.history[k].some((v) => !finite(v))) throw new Error("Invalid save: history");
+    });
+    s.news = Array.isArray(s.news) ? s.news : [];
+    s.activity = Array.isArray(s.activity) ? s.activity : [];
+    s.achievements = isRecord(s.achievements) ? s.achievements : {};
+    s.campaigns = Array.isArray(s.campaigns) ? s.campaigns : [];
+    s.research = Array.isArray(s.research) ? s.research : [];
+    s.researchDone = Array.isArray(s.researchDone) ? s.researchDone : [];
+    s.loans = Array.isArray(s.loans) ? s.loans : [];
+    s.competitors = Array.isArray(s.competitors) ? s.competitors : [];
+    if (s.competitors.some((c) => !isRecord(c) || typeof c.name !== "string" ||
+        typeof c.industry !== "string" || !INDUSTRIES[c.industry] ||
+        !["valuation", "customers", "revenue", "reputation", "growth"].every((k) => finite(c[k])))) throw new Error("Invalid save: competitors");
+    if (s.campaigns.some((c) => !isRecord(c) || !["cost", "weeksLeft", "totalWeeks", "reach", "conv", "viral", "var"].every((k) => finite(c[k])))) throw new Error("Invalid save: campaigns");
+    if (s.research.some((r) => !isRecord(r) || typeof r.id !== "string" || !finite(r.weeksLeft))) throw new Error("Invalid save: research");
+    if (s.loans.some((l) => !isRecord(l) || !["principal", "apr", "weeksLeft", "remaining", "payment"].every((k) => finite(l[k])))) throw new Error("Invalid save: loans");
+    s.market = isRecord(s.market) ? s.market : { state: "Stable", ...MARKET_STATES.Stable };
+    if (typeof s.market.state !== "string" || !MARKET_STATES[s.market.state] ||
+        !["demand", "mkt", "prices", "growth"].every((k) => finite(s.market[k]))) throw new Error("Invalid save: market");
+    s.historyLog = Array.isArray(s.historyLog) ? s.historyLog : [];
+    s.milestones = Array.isArray(s.milestones) ? s.milestones : [];
     return s;
   }
   function hasSave() {
@@ -829,8 +865,9 @@
   function weeklyRdBurn(s) {
     return s.research.reduce((a, r) => a + Math.round(r.cost / Math.max(1, r.totalWeeks) * 0.15), 0);
   }
+  // Campaign costs are charged upfront when a campaign starts.
   function weeklyMktBurn(s) {
-    return s.campaigns.reduce((a, c) => a + Math.round(c.cost / c.totalWeeks), 0);
+    return 0;
   }
   function weeklyLoan(s) {
     return s.loans.reduce((a, l) => a + l.payment, 0);
@@ -893,6 +930,8 @@
     const share = s.flags.revShare ? rev * s.flags.revShare : 0;
     const profit = rev + yieldCash - exp.total - share;
 
+    // Decrement after production so off=3 means three complete weeks away.
+    s.employees.forEach((e) => { if (e.off > 0) e.off -= 1; });
     s.cash += profit;
     tickLoans(s);
     tickMarket(s);
@@ -948,14 +987,13 @@
     const hr = skillSum(s, "HR");
     const mgmt = skillSum(s, "Manager");
     s.employees.forEach((e) => {
-      if (e.off) e.off -= 1;
       const load = 1 + s.employees.length / 80;
       e.stress = clamp(e.stress + (load > 1.2 ? 1 : -0.3) - mgmt / 8000, 0, 100);
       e.morale = clamp(e.morale + hr / 9000 - (e.stress > 70 ? 1.2 : 0) + (e.salary > ROLES[e.role].salary ? 0.2 : -0.15), 0, 100);
       if (e.morale < 22 && Math.random() < 0.08 && e.salary !== 0) {
         activity(s, e.name + " quit.");
         s.employees = s.employees.filter((x) => x.id !== e.id);
-        s.stats.fired += 1;
+        s.stats.employeesQuit = (s.stats.employeesQuit || 0) + 1;
       }
     });
     const cap = UPGRADES.office.levels[s.upgrades.office].cap;
@@ -1093,14 +1131,18 @@
   }
 
   function repayLoans(s, amount) {
-    let left = amount;
+    let left = Math.max(0, Number.isFinite(amount) ? amount : 0);
+    let repaidCount = 0;
     s.loans.forEach((l) => {
-      const pay = Math.min(left, l.remaining);
+      if (left <= 0) return;
+      const pay = Math.min(left, Math.max(0, l.remaining));
       l.remaining -= pay;
       s.cash -= pay;
       left -= pay;
+      if (l.remaining <= 1) repaidCount += 1;
     });
     s.loans = s.loans.filter((l) => l.remaining > 1);
+    s.stats.loansRepaid = (s.stats.loansRepaid || 0) + repaidCount;
   }
 
   function tickMarket(s) {
@@ -1691,12 +1733,12 @@
       s.competitors.map((c) => ({ name: c.name, valuation: c.valuation, customers: c.customers, revenue: c.revenue, you: false, bankrupt: c.bankrupt }))
     ).sort((a, b) => b.valuation - a.valuation);
     el("view-market").innerHTML = head("Market") +
-      '<div class="card"><h3>Condition — ' + s.market.state + "</h3><p class='muted'>Demand " + s.market.demand.toFixed(2) + " · marketing " + s.market.mkt.toFixed(2) + " · prices " + s.market.prices.toFixed(2) + "</p></div>" +
+      '<div class="card"><h3>Condition — ' + esc(s.market.state) + "</h3><p class='muted'>Demand " + s.market.demand.toFixed(2) + " · marketing " + s.market.mkt.toFixed(2) + " · prices " + s.market.prices.toFixed(2) + "</p></div>" +
       '<div class="card" style="margin-top:12px"><h3>Leaderboard</h3>' +
       board.map((c, i) => '<div class="leader' + (c.you ? " is-you" : "") + '"><span>' + (i + 1) + "</span><div>" + esc(c.name) + (c.you ? ' <span class="you-badge">You</span>' : "") + (c.bankrupt ? " · bankrupt" : "") + '</div><strong class="num">' + money(c.valuation) + "</strong></div>").join("") +
       "</div>" +
       '<div class="card" style="margin-top:12px"><h3>Rivals</h3><div class="table-wrap"><table class="data"><thead><tr><th>Company</th><th>Industry</th><th class="num">Customers</th><th class="num">Rev/w</th></tr></thead><tbody>' +
-      s.competitors.map((c) => "<tr><td>" + esc(c.name) + (c.bankrupt ? " (bankrupt)" : "") + "</td><td>" + c.industry + '</td><td class="num">' + c.customers.toLocaleString() + '</td><td class="num">' + money(c.revenue) + "</td></tr>").join("") +
+      s.competitors.map((c) => "<tr><td>" + esc(c.name) + (c.bankrupt ? " (bankrupt)" : "") + "</td><td>" + esc(c.industry) + '</td><td class="num">' + c.customers.toLocaleString() + '</td><td class="num">' + money(c.revenue) + "</td></tr>").join("") +
       "</tbody></table></div></div>";
   }
 
